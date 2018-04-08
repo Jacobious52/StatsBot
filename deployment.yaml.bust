@@ -1,0 +1,48 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: staticmbot
+  labels:
+    app: staticmbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: staticmbot
+  template:
+    metadata:
+      labels:
+        app: staticmbot
+    spec:
+      volumes:
+      - name: staticmbot-storage
+        persistentVolumeClaim:
+          claimName: staticmbot-claim
+      containers:
+      - name: staticmbot
+        image: jacobious/deployments:staticmbot
+        imagePullPolicy: "Always"
+        env:
+        - name: TBTOKEN
+          value: "{{.secrets.token}}"
+        volumeMounts:
+        - mountPath: "/usr/share/db"
+          name: staticmbot-storage
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: staticmbot-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
